@@ -30,6 +30,7 @@ jobs:
       - name: Build Unsigned Archive
         run: |
           cd ios
+          set -o pipefail
           xcodebuild -workspace LocalAiApp.xcworkspace \
             -scheme LocalAiApp \
             -configuration Release \
@@ -38,7 +39,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            EXPANDED_CODE_SIGN_IDENTITY=""
+            EXPANDED_CODE_SIGN_IDENTITY="" | xcpretty
 
       - name: Create IPA payload
         run: |
