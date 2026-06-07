@@ -56,3 +56,51 @@ if (fs.existsSync(packageSwiftPath)) {
 } else {
   console.warn('[Patch] Package.swift not found in apple/ directory.');
 }
+
+// 3. Patch Swift files to replace "weak let" with "weak var" and remove trailing commas in parameter lists (workaround for Swift 6.1.0 compilation)
+const sourcesDir = path.join(path.dirname(packageJsonPath), 'apple/Sources/ExpoModulesJSI');
+
+if (fs.existsSync(sourcesDir)) {
+  const walkSync = (dir) => {
+    let results = [];
+    const list = fs.readdirSync(dir);
+    list.forEach((file) => {
+      const fullPath = path.join(dir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat && stat.isDirectory()) {
+        results = results.concat(walkSync(fullPath));
+      } else if (file.endsWith('.swift')) {
+        results.push(fullPath);
+      }
+    });
+    return results;
+  };
+
+  const swiftFiles = walkSync(sourcesDir);
+  swiftFiles.forEach((file) => {
+    let fileContent = fs.readFileSync(file, 'utf8');
+    let fileModified = false;
+
+    // Replace "weak let" with "weak var"
+    if (/\bweak\s+let\b/.test(fileContent)) {
+      fileContent = fileContent.replace(/\bweak\s+let\b/g, 'weak var');
+      fileModified = true;
+    }
+
+    // Fix trailing comma in JavaScriptRuntime.swift
+    if (file.endsWith('JavaScriptRuntime.swift')) {
+      const targetComma = '_ arguments: consuming JavaScriptValuesBuffer,';
+      if (fileContent.includes(targetComma)) {
+        fileContent = fileContent.replace(targetComma, '_ arguments: consuming JavaScriptValuesBuffer');
+        fileModified = true;
+      }
+    }
+
+    if (fileModified) {
+      fs.writeFileSync(file, fileContent, 'utf8');
+      console.log(`[Patch] Patched Swift file: ${path.relative(sourcesDir, file)}`);
+    }
+  });
+} else {
+  console.warn('[Patch] Swift sources directory not found.');
+}
