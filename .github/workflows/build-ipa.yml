@@ -19,6 +19,14 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Run Patch Script explicitly
+        run: node scripts/patch-expo-jsi.js
+
+      - name: Verify Patch Applied
+        run: |
+          grep -A 5 "SYMROOT" node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh || echo "SYMROOT not found in file"
+
+
       - name: Expo Prebuild (Generate iOS folder)
         run: npx expo prebuild -p ios --clean
 
