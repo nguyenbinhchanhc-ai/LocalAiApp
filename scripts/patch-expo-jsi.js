@@ -57,7 +57,7 @@ if (fs.existsSync(packageSwiftPath)) {
   console.warn('[Patch] Package.swift not found in apple/ directory.');
 }
 
-// 3. Patch Swift files to replace "weak let" with "weak var" and remove trailing commas in parameter lists (workaround for Swift 6.1.0 compilation)
+// 3. Patch Swift files to replace "weak let" with "nonisolated(unsafe) weak var" and remove trailing commas in parameter lists (workaround for Swift 6.1.0 compilation)
 const sourcesDir = path.join(path.dirname(packageJsonPath), 'apple/Sources/ExpoModulesJSI');
 
 if (fs.existsSync(sourcesDir)) {
@@ -81,9 +81,14 @@ if (fs.existsSync(sourcesDir)) {
     let fileContent = fs.readFileSync(file, 'utf8');
     let fileModified = false;
 
-    // Replace "weak let" with "weak var"
+    // Replace "weak let" or "weak var" (if run on a previously modified file) with "nonisolated(unsafe) weak var"
+    // Note: To avoid duplicate "nonisolated(unsafe)" markers, we only replace if it doesn't already have it.
     if (/\bweak\s+let\b/.test(fileContent)) {
-      fileContent = fileContent.replace(/\bweak\s+let\b/g, 'weak var');
+      fileContent = fileContent.replace(/\bweak\s+let\b/g, 'nonisolated(unsafe) weak var');
+      fileModified = true;
+    } else if (/\bweak\s+var\b/.test(fileContent) && !fileContent.includes('nonisolated(unsafe)')) {
+      // Clean up previous runs that replaced weak let with weak var
+      fileContent = fileContent.replace(/\bweak\s+var\b/g, 'nonisolated(unsafe) weak var');
       fileModified = true;
     }
 
