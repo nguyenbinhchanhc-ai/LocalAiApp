@@ -22,6 +22,11 @@ jobs:
       - name: Expo Prebuild (Generate iOS folder)
         run: npx expo prebuild -p ios --clean
 
+      - name: Select Xcode and setup Node
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+          sudo ln -sf $(which node) /usr/local/bin/node
+
       - name: Install CocoaPods
         run: |
           cd ios
