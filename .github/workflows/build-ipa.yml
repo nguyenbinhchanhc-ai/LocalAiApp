@@ -22,10 +22,10 @@ jobs:
       - name: Expo Prebuild (Generate iOS folder)
         run: npx expo prebuild -p ios --clean
 
-      - name: Select Xcode and setup Node
+      - name: Setup Node Binary for Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
-          sudo ln -sf $(which node) /usr/local/bin/node
+          cd ios
+          echo "export NODE_BINARY=$(command -v node)" > .xcode.env.local
 
       - name: Install CocoaPods
         run: |
@@ -36,11 +36,13 @@ jobs:
         run: |
           cd ios
           set -o pipefail
+          export NODE_BINARY=$(command -v node)
           xcodebuild -workspace LocalAiApp.xcworkspace \
             -scheme LocalAiApp \
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build \
+            NODE_BINARY="$NODE_BINARY" \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
