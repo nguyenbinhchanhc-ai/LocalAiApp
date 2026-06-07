@@ -1,5 +1,5 @@
 import { initLlama, LlamaContext } from 'llama.rn';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export class LlmService {
   private context: LlamaContext | null = null;

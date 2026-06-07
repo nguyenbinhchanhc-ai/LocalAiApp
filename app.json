@@ -30,7 +30,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "plugins": [
       "llama.rn",
       [

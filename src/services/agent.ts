@@ -1,6 +1,6 @@
 import { llmService } from './llm';
 import { searchWeb } from './tools/webSearch';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 export class AgentService {
   async processQuery(query: string, fileUri?: string): Promise<string> {
