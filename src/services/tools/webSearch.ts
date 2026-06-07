@@ -1,5 +1,16 @@
 import axios from 'axios';
-import * as cheerio from 'cheerio';
+
+function decodeHTMLEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<[^>]*>/g, ''); // Strip any nested HTML tags
+}
 
 export async function searchWeb(query: string): Promise<string> {
   try {
@@ -13,21 +24,42 @@ export async function searchWeb(query: string): Promise<string> {
       }
     });
 
-    const $ = cheerio.load(response.data);
-    let results = "";
+    const html = response.data;
+    let results: string[] = [];
     
-    // Lấy top 3 kết quả từ DuckDuckGo Lite
-    $('.result-snippet').each((i, element) => {
-      if (i < 3) {
-        results += $(element).text().trim() + "\n";
+    // Match class="result-snippet" (can be in any tag like td)
+    const snippetRegex = /class=["']result-snippet["'][^>]*>([\s\S]*?)<\//gi;
+    let match;
+    let count = 0;
+    
+    while ((match = snippetRegex.exec(html)) !== null && count < 3) {
+      const rawText = match[1];
+      const cleanText = decodeHTMLEntities(rawText).trim();
+      if (cleanText) {
+        results.push(cleanText);
+        count++;
       }
-    });
+    }
 
-    if (!results) {
+    if (results.length === 0) {
+      // Thử thêm regex dự phòng nếu DuckDuckGo Lite thay đổi cấu trúc
+      const backupRegex = /class=[^>]*result-snippet[^>]*>([\s\S]*?)<\//gi;
+      let countBackup = 0;
+      while ((match = backupRegex.exec(html)) !== null && countBackup < 3) {
+        const rawText = match[1];
+        const cleanText = decodeHTMLEntities(rawText).trim();
+        if (cleanText && !results.includes(cleanText)) {
+          results.push(cleanText);
+          countBackup++;
+        }
+      }
+    }
+
+    if (results.length === 0) {
       return "Không tìm thấy thông tin trên mạng.";
     }
 
-    return results;
+    return results.join("\n\n");
   } catch (error) {
     console.error("Lỗi khi tìm kiếm web:", error);
     return "Lỗi khi truy cập internet.";
