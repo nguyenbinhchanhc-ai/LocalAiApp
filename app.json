@@ -9,7 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.localai.app",
-      "deploymentTarget": "15.0",
+      "deploymentTarget": "16.4",
       "entitlements": {
         "com.apple.developer.kernel.increased-memory-limit": true
       },
@@ -36,7 +36,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "15.0"
+            "deploymentTarget": "16.4"
           }
         }
       ]
