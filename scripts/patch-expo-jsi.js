@@ -1,11 +1,19 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetFile = path.join(__dirname, '../node_modules/expo-modules-jsi/apple/scripts/build-xcframework.sh');
+let targetFile;
+try {
+  const packageJsonPath = require.resolve('expo-modules-jsi/package.json');
+  targetFile = path.join(path.dirname(packageJsonPath), 'apple/scripts/build-xcframework.sh');
+  console.log(`[Patch] Found expo-modules-jsi at: ${targetFile}`);
+} catch (e) {
+  console.error('[Patch] Error: expo-modules-jsi not found via require.resolve:', e.message);
+  process.exit(1);
+}
 
 if (!fs.existsSync(targetFile)) {
-  console.log(`[Patch] File not found: ${targetFile}. Skipping patch.`);
-  process.exit(0);
+  console.error(`[Patch] Error: File not found: ${targetFile}`);
+  process.exit(1);
 }
 
 let content = fs.readFileSync(targetFile, 'utf8');
