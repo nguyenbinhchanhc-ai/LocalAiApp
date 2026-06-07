@@ -9,11 +9,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.localai.app",
+      "deploymentTarget": "15.0",
       "entitlements": {
         "com.apple.developer.kernel.increased-memory-limit": true
       },
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "MinimumOSVersion": "15.0"
       }
     },
     "android": {
@@ -29,7 +31,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "llama.rn"
+      "llama.rn",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.0"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
