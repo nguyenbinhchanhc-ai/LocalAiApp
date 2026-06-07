@@ -106,6 +106,47 @@ if (fs.existsSync(sourcesDir)) {
       console.log(`[Patch] Patched Swift file: ${path.relative(sourcesDir, file)}`);
     }
   });
+
+  // 4. Declare @unchecked Sendable on context classes and JSI wrapper classes to bypass strict Checked Sendable stored property diagnostics
+  const hostFunctionContextFile = path.join(sourcesDir, 'Contexts/HostFunctionContext.swift');
+  if (fs.existsSync(hostFunctionContextFile)) {
+    let fileContent = fs.readFileSync(hostFunctionContextFile, 'utf8');
+    if (fileContent.includes('class HostFunctionContext: Sendable')) {
+      fileContent = fileContent.replace('class HostFunctionContext: Sendable', 'class HostFunctionContext: @unchecked Sendable');
+      fs.writeFileSync(hostFunctionContextFile, fileContent, 'utf8');
+      console.log('[Patch] Patched HostFunctionContext to conform to @unchecked Sendable.');
+    }
+  }
+
+  const hostObjectContextFile = path.join(sourcesDir, 'Contexts/HostObjectContext.swift');
+  if (fs.existsSync(hostObjectContextFile)) {
+    let fileContent = fs.readFileSync(hostObjectContextFile, 'utf8');
+    if (fileContent.includes('class HostObjectContext: Sendable')) {
+      fileContent = fileContent.replace('class HostObjectContext: Sendable', 'class HostObjectContext: @unchecked Sendable');
+      fs.writeFileSync(hostObjectContextFile, fileContent, 'utf8');
+      console.log('[Patch] Patched HostObjectContext to conform to @unchecked Sendable.');
+    }
+  }
+
+  const propNameIDFile = path.join(sourcesDir, 'Runtime/JavaScriptPropNameID.swift');
+  if (fs.existsSync(propNameIDFile)) {
+    let fileContent = fs.readFileSync(propNameIDFile, 'utf8');
+    if (fileContent.includes('class JavaScriptPropNameID: JavaScriptType') && !fileContent.includes('@unchecked Sendable')) {
+      fileContent = fileContent.replace('class JavaScriptPropNameID: JavaScriptType', 'class JavaScriptPropNameID: JavaScriptType, @unchecked Sendable');
+      fs.writeFileSync(propNameIDFile, fileContent, 'utf8');
+      console.log('[Patch] Patched JavaScriptPropNameID to conform to @unchecked Sendable.');
+    }
+  }
+
+  const javaScriptValueFile = path.join(sourcesDir, 'Runtime/Values/JavaScriptValue.swift');
+  if (fs.existsSync(javaScriptValueFile)) {
+    let fileContent = fs.readFileSync(javaScriptValueFile, 'utf8');
+    if (fileContent.includes('class JavaScriptValue: JavaScriptType, Equatable, Escapable, Error') && !fileContent.includes('@unchecked Sendable')) {
+      fileContent = fileContent.replace('class JavaScriptValue: JavaScriptType, Equatable, Escapable, Error', 'class JavaScriptValue: JavaScriptType, Equatable, Escapable, Error, @unchecked Sendable');
+      fs.writeFileSync(javaScriptValueFile, fileContent, 'utf8');
+      console.log('[Patch] Patched JavaScriptValue to conform to @unchecked Sendable.');
+    }
+  }
 } else {
   console.warn('[Patch] Swift sources directory not found.');
 }
