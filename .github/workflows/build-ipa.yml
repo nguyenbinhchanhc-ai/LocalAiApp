@@ -1,0 +1,54 @@
+name: Build Unsigned iOS IPA
+
+on:
+  workflow_dispatch: # Cho phép bấm chạy bằng tay trên GitHub
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Expo Prebuild (Generate iOS folder)
+        run: npx expo prebuild -p ios --clean
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+
+      - name: Build Unsigned Archive
+        run: |
+          cd ios
+          xcodebuild -workspace LocalAiApp.xcworkspace \
+            -scheme LocalAiApp \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            EXPANDED_CODE_SIGN_IDENTITY=""
+
+      - name: Create IPA payload
+        run: |
+          cd ios/build/Build/Products/Release-iphoneos
+          mkdir Payload
+          cp -r LocalAiApp.app Payload/
+          zip -r LocalAiApp.ipa Payload/
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LocalAiApp-Unsigned-IPA
+          path: ios/build/Build/Products/Release-iphoneos/LocalAiApp.ipa
