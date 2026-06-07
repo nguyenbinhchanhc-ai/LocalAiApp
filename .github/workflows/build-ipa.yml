@@ -43,7 +43,6 @@ jobs:
       - name: Build Unsigned Archive
         run: |
           cd ios
-          set -o pipefail
           export NODE_BINARY=$(command -v node)
           xcodebuild -workspace LocalAiApp.xcworkspace \
             -scheme LocalAiApp \
